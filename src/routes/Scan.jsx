@@ -24,7 +24,8 @@ const Scan = () => {
         const getVideoInfo = await navigator.mediaDevices.getUserMedia({
           video: true,
         });
-        getVideoInfo && setShow(true);
+        console.log("jjy getVideoInfo", getVideoInfo.id);
+        getVideoInfo.id && setShow(true);
       } catch (error) {
         window.alert("카메라 권한을 확인해주세요: " + error);
         navigate(-1);
@@ -33,7 +34,11 @@ const Scan = () => {
     getPermission();
   }, []);
 
-  return isShow && <QRScanner onScan={handleScan} />;
+  return isShow ? (
+    <QRScanner onScan={handleScan} />
+  ) : (
+    <div>NotAllowedError: Permission denied</div>
+  );
 };
 
 export default Scan;
