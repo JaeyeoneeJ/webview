@@ -25,9 +25,17 @@ const Scan = () => {
     };
     const getPermission = async () => {
       try {
-        const getVideoInfo = await navigator.mediaDevices.getUserMedia({
-          video: true,
+        const timeoutPromise = new Promise((resolve, reject) => {
+          setTimeout(() => {
+            reject(new Error("getUserMedia timed out"));
+          }, 2000); // 2초 후에 타임아웃 처리
         });
+
+        const getVideoInfo = await Promise.race([
+          navigator.mediaDevices.getUserMedia({ video: true }),
+          timeoutPromise,
+        ]);
+
         console.log("jjy getVideoInfo", getVideoInfo);
         getVideoInfo.id ? setShow(true) : errorCase("NOTHING");
       } catch (error) {
