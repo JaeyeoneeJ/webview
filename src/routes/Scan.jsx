@@ -19,20 +19,23 @@ const Scan = () => {
   }, []);
 
   useEffect(() => {
+    const errorCase = (error) => {
+      window.alert("카메라 권한을 확인해주세요: " + error);
+      navigate(-1);
+    };
     const getPermission = async () => {
       try {
         const getVideoInfo = await navigator.mediaDevices.getUserMedia({
           video: true,
         });
-        console.log("jjy getVideoInfo", getVideoInfo.id);
-        getVideoInfo.id && setShow(true);
+        console.log("jjy getVideoInfo", getVideoInfo);
+        getVideoInfo.id ? setShow(true) : errorCase("NOTHING");
       } catch (error) {
-        window.alert("카메라 권한을 확인해주세요: " + error);
-        navigate(-1);
+        errorCase(error);
       }
     };
     getPermission();
-  }, []);
+  }, [navigate]);
 
   return isShow ? (
     <QRScanner onScan={handleScan} />
