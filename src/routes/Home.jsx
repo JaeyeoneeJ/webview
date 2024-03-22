@@ -3,6 +3,12 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
+const Wrapper = styled.div`
+  padding: 20px;
+`;
+const Title = styled.h3`
+  margin-top: 0;
+`;
 const Button = styled.button`
   background-color: #ffffff;
   padding: 4px 8px;
@@ -22,11 +28,11 @@ const Home = () => {
   const { data } = useSelector((state) => state.scan);
 
   return (
-    <div>
-      <h3>QR Code Scanner</h3>
+    <Wrapper>
+      <Title>QR Code Scanner</Title>
       <Button onClick={() => navigate("/scan")}>ScanButton</Button>
       {data && <p>Scan 결과: {data.text}</p>}
-    </div>
+    </Wrapper>
   );
 };
 

@@ -7,15 +7,12 @@ const Scan = lazy(() => import(/* webpackChunkName: "scan" */ "./routes/Scan"));
 function App() {
   useEffect(() => {
     navigator?.mediaDevices
-      ?.getUserMedia({ video: true, audio: true })
+      ?.getUserMedia({ video: true })
       .then(function (stream) {
-        console.log("jjy 카메라 및 마이크 엑세스가 허용되었습니다.");
+        console.log("카메라 권한이 허용되었습니다: ", stream);
       })
       .catch(function (err) {
-        console.log(
-          "jjy 카메라 및 마이크 액세스를 거부하거나 오류가 발생했습니다: ",
-          err
-        );
+        console.log("카메라 권한을 거부하거나 오류가 발생했습니다: ", err);
       });
   }, []);
 
