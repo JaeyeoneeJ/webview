@@ -1,6 +1,8 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { QrReader } from "react-qr-reader";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import BackArrow from "./svg/BackArrow";
 
 const ScanWrapper = styled.div`
   & > section > div {
@@ -14,7 +16,6 @@ const ScanWrapper = styled.div`
     transform: translateX(-50%) scaleX(-1) !important;
   }
 `;
-
 const BgWrapper = styled.div`
   position: absolute;
   z-index: 1;
@@ -42,10 +43,28 @@ const TransparentBox = styled.div`
   background-color: transparent;
   border: 5px solid #ffffff;
 `;
+const BackButton = styled.div`
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 10px 12px 10px 8px;
+  border-radius: 50%;
+  box-sizing: border-box;
+  width: 50px;
+  height: 50px;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+`;
+
+const SCAN_DELAY = 1000; // scan interval
 
 const QRScanner = ({ onScan }) => {
+  const navigate = useNavigate();
   const handleScan = useCallback(
     (data) => {
+      console.log("jjy test");
       if (data && typeof onScan === "function") {
         onScan(data); // 스캔된 데이터를 부모 컴포넌트로 전달
       }
@@ -61,6 +80,9 @@ const QRScanner = ({ onScan }) => {
     <ScanWrapper>
       {/* ui */}
       <BgWrapper>
+        <BackButton onClick={() => navigate(-1)}>
+          <BackArrow fill={"#ffffff"} />
+        </BackButton>
         <BgBox />
         <BgContainer>
           <BgBox />
@@ -71,7 +93,11 @@ const QRScanner = ({ onScan }) => {
       </BgWrapper>
 
       {/* scanComponent */}
-      <QrReader scanDelay={300} onError={handleError} onResult={handleScan} />
+      <QrReader
+        scanDelay={SCAN_DELAY}
+        onError={handleError}
+        onResult={handleScan}
+      />
     </ScanWrapper>
   );
 };
