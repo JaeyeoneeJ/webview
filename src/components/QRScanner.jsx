@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { QrReader } from "react-qr-reader";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
@@ -14,7 +20,8 @@ const ScanWrapper = styled.div`
   & > section > div > video {
     width: auto !important;
     left: 50% !important;
-    transform: translateX(-50%) scaleX(-1) !important;
+    transform: translateX(-50%)
+      ${({ $isMobile, $isDev }) => ($isDev || !$isMobile) && `scaleX(-1)`} !important;
   }
 `;
 const BgWrapper = styled.div`
@@ -67,6 +74,16 @@ const QRScanner = ({ onScan }) => {
   const [isShow, setShow] = useState(false);
   const videoBoxRef = useRef(null);
 
+  const envMode = useMemo(() => {
+    const isDevelopment = process.env.REACT_APP_LAUNCH_MODE === "LOCAL";
+    const isMobile = isDevelopment
+      ? true
+      : /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const includeLabel = isDevelopment ? "" : "back";
+
+    return { isDevelopment, isMobile, includeLabel };
+  }, []);
+
   const handleScan = useCallback(
     (data) => {
       if (data && typeof onScan === "function") {
@@ -94,13 +111,7 @@ const QRScanner = ({ onScan }) => {
         });
 
         const getVideoFunc = async () => {
-          const isDevelopment = process.env.REACT_APP_LAUNCH_MODE === "LOCAL";
-          const isMobile = isDevelopment
-            ? true
-            : /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-          const includeLabel = isDevelopment ? "" : "back";
-
-          if (isMobile) {
+          if (envMode.isMobile) {
             let mediaStream;
             await navigator.mediaDevices
               .enumerateDevices()
@@ -108,7 +119,7 @@ const QRScanner = ({ onScan }) => {
                 const cameraDevices = devices.filter(
                   (device) =>
                     device.kind === "videoinput" &&
-                    device.label.includes(includeLabel)
+                    device.label.includes(envMode.includeLabel)
                 );
                 if (cameraDevices.length > 0) {
                   const cameraDevice = cameraDevices[0];
@@ -151,10 +162,14 @@ const QRScanner = ({ onScan }) => {
       const videoEl = boxEl.querySelector("video");
       getPermission(videoEl);
     }
-  }, [navigate]);
+  }, [navigate, envMode]);
 
   return (
-    <ScanWrapper ref={videoBoxRef}>
+    <ScanWrapper
+      ref={videoBoxRef}
+      $isMobile={envMode.isMobile}
+      $isDev={envMode.isDevelopment}
+    >
       {/* ui */}
       {isShow ? (
         <BgWrapper>
