@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { QrReader } from "react-qr-reader";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import PulseLoader from "react-spinners/PulseLoader";
 import BackArrow from "./svg/BackArrow";
 
 const ScanWrapper = styled.div`
@@ -62,9 +63,12 @@ const SCAN_DELAY = 1000; // scan interval
 
 const QRScanner = ({ onScan }) => {
   const navigate = useNavigate();
+
+  const [isShow, setShow] = useState(false);
+  const videoBoxRef = useRef(null);
+
   const handleScan = useCallback(
     (data) => {
-      console.log("jjy test");
       if (data && typeof onScan === "function") {
         onScan(data); // 스캔된 데이터를 부모 컴포넌트로 전달
       }
@@ -76,21 +80,102 @@ const QRScanner = ({ onScan }) => {
     console.error(err);
   }, []);
 
+  useEffect(() => {
+    const errorCase = (error) => {
+      window.alert("카메라 권한을 확인해주세요: " + error);
+      navigate(-1);
+    };
+    const getPermission = async (videoEl) => {
+      try {
+        const timeoutPromise = new Promise((resolve, reject) => {
+          setTimeout(() => {
+            reject(new Error("getUserMedia timed out"));
+          }, 2000); // 2초 후에 타임아웃 처리
+        });
+
+        const getVideoFunc = async () => {
+          const isDevelopment = process.env.REACT_APP_LAUNCH_MODE === "LOCAL";
+          const isMobile = isDevelopment
+            ? true
+            : /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+          const includeLabel = isDevelopment ? "" : "back";
+
+          if (!isMobile) {
+            let mediaStream;
+            await navigator.mediaDevices
+              .enumerateDevices()
+              .then(async (devices) => {
+                const cameraDevices = devices.filter(
+                  (device) =>
+                    device.kind === "videoinput" &&
+                    device.label.includes(includeLabel)
+                );
+                if (cameraDevices.length > 0) {
+                  const cameraDevice = cameraDevices[0];
+                  const constraints = {
+                    video: { deviceId: cameraDevice.deviceId },
+                    audio: false,
+                  };
+                  return await navigator.mediaDevices
+                    .getUserMedia(constraints)
+                    .then((stream) => {
+                      // 미디어 스트림을 사용하여 비디오 요소에 표시
+                      if (videoEl?.srcObject) {
+                        videoEl.srcObject = stream;
+                      }
+                      mediaStream = stream;
+                    })
+                    .catch((error) => {
+                      console.error("카메라 액세스 실패:", error);
+                    });
+                }
+              });
+            return mediaStream;
+          } else {
+            return navigator.mediaDevices.getUserMedia({ video: true });
+          }
+        };
+
+        const getVideoInfo = await Promise.race([
+          getVideoFunc(),
+          timeoutPromise,
+        ]);
+
+        getVideoInfo.id ? setShow(true) : errorCase("NOTHING");
+      } catch (error) {
+        errorCase(error);
+      }
+    };
+
+    if (videoBoxRef.current) {
+      const boxEl = videoBoxRef.current;
+      const videoEl = boxEl.querySelector("video");
+      getPermission(videoEl);
+    }
+  }, [navigate]);
+
   return (
-    <ScanWrapper>
+    <ScanWrapper ref={videoBoxRef}>
       {/* ui */}
-      <BgWrapper>
-        <BackButton onClick={() => navigate(-1)}>
-          <BackArrow fill={"#ffffff"} />
-        </BackButton>
-        <BgBox />
-        <BgContainer>
+      {isShow ? (
+        <BgWrapper>
+          <BackButton onClick={() => navigate(-1)}>
+            <BackArrow fill={"#ffffff"} />
+          </BackButton>
           <BgBox />
-          <TransparentBox />
+          <BgContainer>
+            <BgBox />
+            <TransparentBox />
+            <BgBox />
+          </BgContainer>
           <BgBox />
-        </BgContainer>
-        <BgBox />
-      </BgWrapper>
+        </BgWrapper>
+      ) : (
+        <BgWrapper style={{ backgroundColor: "#fff" }}>
+          <p>loading camera</p>
+          <PulseLoader color={"#acacac"} size={10} margin={4} />
+        </BgWrapper>
+      )}
 
       {/* scanComponent */}
       <QrReader
