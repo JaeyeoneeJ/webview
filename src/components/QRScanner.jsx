@@ -122,7 +122,7 @@ const QRScanner = ({ onScan }) => {
                     device.label.includes(envMode.includeLabel)
                 );
                 if (cameraDevices.length > 0) {
-                  const cameraDevice = cameraDevices[0];
+                  const cameraDevice = cameraDevices[cameraDevices.length - 1];
                   const constraints = {
                     video: { deviceId: cameraDevice.deviceId },
                     audio: false,
