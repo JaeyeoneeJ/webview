@@ -100,7 +100,7 @@ const QRScanner = ({ onScan }) => {
             : /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
           const includeLabel = isDevelopment ? "" : "back";
 
-          if (!isMobile) {
+          if (isMobile) {
             let mediaStream;
             await navigator.mediaDevices
               .enumerateDevices()
@@ -140,8 +140,7 @@ const QRScanner = ({ onScan }) => {
           getVideoFunc(),
           timeoutPromise,
         ]);
-
-        getVideoInfo.id ? setShow(true) : errorCase("NOTHING");
+        getVideoInfo?.id ? setShow(true) : errorCase("NOTHING");
       } catch (error) {
         errorCase(error);
       }
