@@ -67,6 +67,7 @@ const BackButton = styled.div`
 `;
 
 const SCAN_DELAY = 1000; // scan interval
+const PERMISSION_DELAY = 2000; // scan interval
 
 const QRScanner = ({ onScan }) => {
   const navigate = useNavigate();
@@ -107,7 +108,7 @@ const QRScanner = ({ onScan }) => {
         const timeoutPromise = new Promise((resolve, reject) => {
           setTimeout(() => {
             reject(new Error("getUserMedia timed out"));
-          }, 2000); // 2초 후에 타임아웃 처리
+          }, PERMISSION_DELAY); // 2초 후에 타임아웃 처리
         });
 
         const getVideoFunc = async () => {
